@@ -11,3 +11,8 @@ var (
 	NamingClient             naming_client.INamingClient
 	DataSourceConnectionInfo dataset.ConnectionInfo
 )
+
+const (
+	COUNT_SQL = "count_sql"
+	SQL = "sql"
+)
