@@ -14,11 +14,9 @@ func HandleReady(rw http.ResponseWriter, r *http.Request, params httprouter.Para
 		validationQuery = "select 1 from dual"
 	}
 	if err := setSqlMap(func(options *QueryOptions) {
-		sqls := map[string]string{
+		options.Sqls = map[string]string{
 			"sql": validationQuery,
 		}
-		options.Sqls = sqls
-		options.paramValues = make([][]interface{}, 1)
 	}); err != nil {
 		return err
 	}
