@@ -35,12 +35,14 @@ func HandleDataset(rw http.ResponseWriter, r *http.Request, params httprouter.Pa
 	}
 	// 设置数据源的sqlMap
 	if err := setSqlMap(func(options *QueryOptions) {
-		sqls := map[string]string{
+		options.Sqls = map[string]string{
 			"count_sql": global.ServerConfig.DataSource.Info.CountSql + whereSql,
 			"sql":       global.ServerConfig.DataSource.Info.Sql + whereSql + " " + global.ServerConfig.DataSource.Info.PageAndOrderSql,
 		}
-		options.Sqls = sqls
-		options.paramValues = [][]interface{}{countParamValues, paramValues}
+		options.paramValues = map[string][]interface{}{
+			"count_sql": countParamValues,
+			"sql":       paramValues,
+		}
 	}); err != nil {
 		return err
 	}
@@ -131,7 +133,7 @@ type QueryOption func(*QueryOptions)
 
 type QueryOptions struct {
 	Sqls        map[string]string
-	paramValues [][]interface{}
+	paramValues map[string][]interface{}
 }
 
 func loadQueryOption(option ...QueryOption) *QueryOptions {
@@ -145,7 +147,6 @@ func loadQueryOption(option ...QueryOption) *QueryOptions {
 func setSqlMap(option ...QueryOption) error {
 	op := loadQueryOption(option...)
 	sqlMap := make(map[string][]interface{})
-	i := 0
 	for k, v := range op.Sqls {
 		m := map[string]string{
 			"type": k,
@@ -155,8 +156,7 @@ func setSqlMap(option ...QueryOption) error {
 		if err != nil {
 			return err
 		}
-		sqlMap[string(b)] = op.paramValues[i]
-		i++
+		sqlMap[string(b)] = op.paramValues[k]
 	}
 	sqlJsonBytes, err := json.Marshal(&sqlMap)
 	if err != nil {
